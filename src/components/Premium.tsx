@@ -61,10 +61,10 @@ export const Premium = () => {
               {/* Pricing */}
               <div className="text-center mb-8">
                 <div className="inline-flex items-baseline space-x-2 rtl:space-x-reverse mb-2">
-                  <span className="text-4xl font-heading font-bold text-white">29</span>
-                  <span className="text-white/80">ريال شهرياً</span>
+                  <span className="text-4xl font-heading font-bold text-white">$19</span>
+                  <span className="text-white/80">شهرياً</span>
                 </div>
-                <p className="text-white/60 text-sm">أو 299 ريال سنوياً (وفّر 30%)</p>
+                <p className="text-white/60 text-sm">أو $199 سنوياً (وفّر 30%)</p>
               </div>
 
               {/* CTA */}
