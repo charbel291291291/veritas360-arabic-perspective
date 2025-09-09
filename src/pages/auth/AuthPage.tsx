@@ -1,45 +1,53 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, Eye, EyeOff, Lock, User } from "lucide-react";
+import { Globe, Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
-const AdminLogin = () => {
+const AuthPage = () => {
+  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, user, isAdmin, isLoading: authLoading } = useAuth();
+  const { signIn, signUp } = useAuth();
 
-  useEffect(() => {
-    if (user && isAdmin) {
-      navigate("/admin/dashboard");
-    }
-  }, [user, isAdmin, navigate]);
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
-      
-      if (error) {
+      let result;
+      if (isLogin) {
+        result = await signIn(email, password);
+      } else {
+        result = await signUp(email, password, fullName);
+      }
+
+      if (result.error) {
         toast({
-          title: "خطأ في تسجيل الدخول",
-          description: error.message,
+          title: "خطأ في المصادقة",
+          description: result.error.message,
           variant: "destructive",
         });
       } else {
-        toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في لوحة التحكم",
-        });
-        // Navigation will be handled by useEffect
+        if (isLogin) {
+          toast({
+            title: "تم تسجيل الدخول بنجاح",
+            description: "مرحباً بك في Veritas360",
+          });
+          navigate("/");
+        } else {
+          toast({
+            title: "تم إنشاء الحساب بنجاح",
+            description: "تحقق من بريدك الإلكتروني لتأكيد الحساب",
+          });
+        }
       }
     } catch (error: any) {
       toast({
@@ -52,26 +60,18 @@ const AdminLogin = () => {
     }
   };
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-navy via-navy/90 to-crimson/20 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-navy via-navy/90 to-crimson/20 flex items-center justify-center p-4" dir="rtl">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <svg className="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <pattern id="admin-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+            <pattern id="auth-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
               <circle cx="10" cy="10" r="1" fill="white" />
               <path d="M5,5 Q10,2 15,5 Q18,10 15,15 Q10,18 5,15 Q2,10 5,5" stroke="white" strokeWidth="0.5" fill="none" />
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill="url(#admin-pattern)" />
+          <rect width="100%" height="100%" fill="url(#auth-pattern)" />
         </svg>
       </div>
 
@@ -84,30 +84,51 @@ const AdminLogin = () => {
             </div>
           </div>
           <h1 className="text-3xl font-heading font-bold text-white mb-2">
-            لوحة التحكم الإدارية
+            {isLogin ? "تسجيل الدخول" : "إنشاء حساب جديد"}
           </h1>
           <p className="text-white/70">
-            Veritas360 - نظام إدارة المحتوى
+            Veritas360 - منصة الأخبار العربية الحديثة
           </p>
         </div>
 
-        {/* Login Form */}
+        {/* Auth Form */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Full Name Field - only for signup */}
+            {!isLogin && (
+              <div className="space-y-2">
+                <label htmlFor="fullName" className="text-sm font-medium text-white">
+                  الاسم الكامل
+                </label>
+                <div className="relative">
+                  <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5" />
+                  <Input
+                    id="fullName"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="pr-10 bg-white/10 border-white/20 text-white placeholder-white/60 focus:border-white/40"
+                    placeholder="أدخل اسمك الكامل"
+                    required={!isLogin}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Email Field */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-white">
                 البريد الإلكتروني
               </label>
               <div className="relative">
-                <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5" />
+                <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5" />
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pr-10 bg-white/10 border-white/20 text-white placeholder-white/60 focus:border-white/40"
-                  placeholder="admin@veritas360.com"
+                  placeholder="example@domain.com"
                   required
                 />
               </div>
@@ -139,21 +160,29 @@ const AdminLogin = () => {
               </div>
             </div>
 
-            {/* Login Button */}
+            {/* Submit Button */}
             <Button
               type="submit"
               disabled={isLoading}
               className="w-full bg-white text-navy hover:bg-white/90 font-heading font-semibold py-3"
             >
-              {isLoading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
+              {isLoading 
+                ? (isLogin ? "جاري تسجيل الدخول..." : "جاري إنشاء الحساب...") 
+                : (isLogin ? "تسجيل الدخول" : "إنشاء حساب")}
             </Button>
           </form>
 
-          {/* Help Text */}
-          <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
-            <p className="text-white/70 text-sm text-center mb-2">للمدراء فقط</p>
-            <p className="text-white/90 text-xs text-center">
-              تحتاج إلى حساب مدير مُسجل مسبقاً للدخول إلى لوحة التحكم
+          {/* Toggle Auth Mode */}
+          <div className="mt-6 text-center">
+            <p className="text-white/70 text-sm">
+              {isLogin ? "ليس لديك حساب؟" : "لديك حساب بالفعل؟"}
+              {" "}
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-white hover:text-white/80 font-medium underline"
+              >
+                {isLogin ? "إنشاء حساب جديد" : "تسجيل الدخول"}
+              </button>
             </p>
           </div>
         </div>
@@ -167,4 +196,4 @@ const AdminLogin = () => {
   );
 };
 
-export default AdminLogin;
+export default AuthPage;

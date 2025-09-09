@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/components/ui/use-toast";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -24,6 +26,8 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut, user } = useAuth();
+  const { toast } = useToast();
 
   const navigation = [
     { name: "لوحة التحكم", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -35,9 +39,21 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const handleLogout = () => {
-    // Add logout logic here
-    navigate("/admin");
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "تم تسجيل الخروج",
+        description: "تم تسجيل خروجك بنجاح",
+      });
+      navigate("/admin");
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء تسجيل الخروج",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -135,9 +151,13 @@ export const AdminLayout = ({ children, title }: AdminLayoutProps) => {
             {/* Admin Profile */}
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <div className="w-8 h-8 bg-navy rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">أ</span>
+                <span className="text-white text-sm font-medium">
+                  {user?.email?.charAt(0).toUpperCase() || "أ"}
+                </span>
               </div>
-              <span className="text-sm font-medium">المدير العام</span>
+              <span className="text-sm font-medium">
+                {user?.email?.split('@')[0] || "المدير العام"}
+              </span>
             </div>
           </div>
         </div>

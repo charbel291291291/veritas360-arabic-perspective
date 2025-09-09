@@ -1,9 +1,12 @@
-import { Search, Globe, User, Menu, Bell } from "lucide-react";
+import { Search, Globe, User, Menu, Bell, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Header = () => {
   const navItems = ["عناوين", "سياسة", "اقتصاد", "عالم", "رأي", "تكنولوجيا"];
+  const { user, signOut } = useAuth();
   
   return (
     <>
@@ -46,14 +49,43 @@ export const Header = () => {
               </div>
 
               {/* Auth Buttons */}
-              <Button variant="ghost" size="sm" className="hidden sm:flex items-center space-x-2 rtl:space-x-reverse">
-                <User className="w-4 h-4" />
-                <span>تسجيل الدخول</span>
-              </Button>
-              
-              <Button className="btn-accent">
-                اشتراك بريميوم
-              </Button>
+              {user ? (
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <div className="w-8 h-8 bg-navy rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-medium">
+                        {user.email?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <span className="text-sm text-navy hidden sm:block">
+                      {user.email?.split('@')[0]}
+                    </span>
+                  </div>
+                  <Button
+                    onClick={() => signOut()}
+                    variant="ghost"
+                    size="sm"
+                    className="text-navy hover:text-crimson"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Link to="/auth">
+                    <Button variant="ghost" size="sm" className="hidden sm:flex items-center space-x-2 rtl:space-x-reverse">
+                      <User className="w-4 h-4" />
+                      <span>تسجيل الدخول</span>
+                    </Button>
+                  </Link>
+                  
+                  <Link to="/auth">
+                    <Button className="btn-accent">
+                      اشتراك بريميوم
+                    </Button>
+                  </Link>
+                </>
+              )}
 
               {/* Mobile Menu */}
               <Button variant="ghost" size="sm" className="lg:hidden">
